@@ -1,2 +1,2 @@
 # Glow API
-<span style="color:'#01a529'"><h1>POST</h1></span> /api/auth/signup
+<h1 style="color:'#01a529'">POST</h1> /api/auth/signup
