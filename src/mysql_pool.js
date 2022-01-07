@@ -10,9 +10,11 @@ const pool = mysql.createPool({
 
 module.exports.pool = pool
 
-module.exports.createQuery = (sql, data, callBack) => {
-    pool.query(sql, data, (err, res, fields) => {
-        if(err) return callBack(err)
-        return callBack(null, res)
-    })
+module.exports = {
+    createQuery: (sql, data, callBack) => {
+        pool.query(sql, data, (err, res, fields) => {
+            if(err) return callBack(err)
+            return callBack(null, res)
+        })
+    }
 }

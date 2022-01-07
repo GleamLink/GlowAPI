@@ -31,10 +31,10 @@ for (const file of files) {
     const route = require(`./routes/${file}`)
     app.use(route.page, new route.Router())
 
-    console.log(`[API] Route ${file.toLowerCase()} launched`)
+    console.log(`Route ${file.toLowerCase()} launched`)
 }
 
-app.listen(port, () => console.log("[API] Listening http://api.glowapp.eu:" + port + "/"))
+app.listen(port, () => console.log("Server on: http://localhost:" + port))
 
 function generateAccessToken(user) {
     return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1800s'})
