@@ -13,7 +13,7 @@ module.exports = {
     getUser: async (userId, callback) => {
         await this.pool.query('SELECT * FROM users WHERE id=?', [userId], (err, res) => {
             if(err) return console.log(err)
-            return callback(err, JSON.stringify(res))
+            return callback(err, JSON.parse(JSON.stringify(res))[0])
         })
     },
     updateUser: async (userId, username, avatar, banner, banner_color, callBack) => { /* TODO: Check if username is already taken or not */

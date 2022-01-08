@@ -49,7 +49,7 @@ module.exports.Router = class Routes extends Router {
         // @me - shows information about the user with token in Authorization
         this.get('/@me', authToken, async (req, res) => {
                 util.getUser(req.user.userId, (err, resu) => {
-                    const user = JSON.parse(resu)[0]
+                    const user = resu
                     delete user.password, delete user.isVerified, delete user.isAdmin
                     console.log(user)
                 })
