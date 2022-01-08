@@ -4,7 +4,7 @@ const mysql = require('../src/mysql_pool.js')
 const md5 = require('md5')
 const crypto = require('crypto')
 const validator = require('validator')
-const { verifyAccessToken, signAccessToken, getUser } = require('../src/util')
+const { verifyAccessToken, signAccessToken, getUser, signRefreshToken } = require('../src/util')
 
 let transporter = require('nodemailer').createTransport({
     name: process.env.NODEMAILER_NAME,
@@ -95,8 +95,9 @@ module.exports.Router = class Routes extends Router {
                     if(md5(req.body.password) == resu[0].password) {
                         if(!resu[0].isVerified) return res.status(401).send({ "message": "Account not activated" })
                         const userId = JSON.parse(JSON.stringify(resu[0])).id
-                        signAccessToken(userId).then(token => res.json(token))
-                        // res.json(accessToken)
+                        
+                        signAccessToken(userId)
+                        .then(aToken => signRefreshToken(userId).then(rToken => res.send({ aToken, rToken })))
                     }
                     else
                         return res.status(401).send({ "message": "Invalid credentials" })
@@ -109,7 +110,8 @@ module.exports.Router = class Routes extends Router {
 
         this.get('/account', verifyAccessToken, (req, res) => {
             getUser(req.user.userId, (err, resu) => {
-                if(err) res.send(err).status(500)
+                
+                if(err) { console.log(err); res.status(500).send(err) }
                 res.json({
                     "id": resu.id,
                     "username": resu.username,

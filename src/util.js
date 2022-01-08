@@ -64,9 +64,24 @@ module.exports = {
         if(token == null) return res.sendStatus(401)
 
         jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-            if(err) return res.sendStatus(403)
+            if(err) return res.status(403).send(err)
             req.user = user
             next()
         })
-    }
+    },
+    signRefreshToken: (userId) => {
+        return new Promise((resolve, reject) => {
+            const payload = {userId: userId}
+            const secret = process.env.REFRESH_TOKEN_SECRET
+            const options = {
+                expiresIn: '6m',
+            }
+            jwt.sign(payload, secret, options, (err, token) => {
+                if(err) {
+                    reject(500)
+                }
+                resolve(token)
+            })
+        })
+    },
 }
