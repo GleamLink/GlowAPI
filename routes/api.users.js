@@ -49,8 +49,8 @@ module.exports.Router = class Routes extends Router {
         // @me - shows information about the user with token in Authorization
         this.get('/@me', authToken, async (req, res) => {
                 delete req.user.password
-                console.log(JSON.parse(req.user.avatar))
-                req.user.relations = JSON.parse(req.user.relations)
+                console.log(JSON.stringify(req.user.avatar))
+                req.user.friends = JSON.stringify(req.user.friends)
                 return res.json(req.user)
         })
 
