@@ -1,5 +1,6 @@
 const mysql = require('mysql')
 const file = require('./util')
+const jwt = require('jsonwebtoken')
 
 module.exports.pool = mysql.createPool({
     connectionLimit: 10,
@@ -41,5 +42,31 @@ module.exports = {
         } catch (error) {
             console.error(error)
         }        
+    },
+    signAccessToken: (userId) => {
+        return new Promise((resolve, reject) => {
+            const payload = {userId: userId}
+            const secret = process.env.ACCESS_TOKEN_SECRET
+            const options = {
+                expiresIn: '1h',
+            }
+            jwt.sign(payload, secret, options, (err, token) => {
+                if(err) {
+                    reject(500)
+                }
+                resolve(token)
+            })
+        })
+    },
+    verifyAccessToken: (req, res, next) => {
+        const authHeader = req.headers['authorization']
+        const token = authHeader && authHeader.split(' ')[1]
+        if(token == null) return res.sendStatus(401)
+
+        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+            if(err) return res.sendStatus(403)
+            req.user = user
+            next()
+        })
     }
 }
