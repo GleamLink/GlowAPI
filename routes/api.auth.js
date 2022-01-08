@@ -4,6 +4,7 @@ const mysql = require('../src/mysql_pool.js')
 const md5 = require('md5')
 const crypto = require('crypto')
 const validator = require('validator')
+const util = require('../src/util')
 
 let transporter = require('nodemailer').createTransport({
     name: process.env.NODEMAILER_NAME,
@@ -93,9 +94,9 @@ module.exports.Router = class Routes extends Router {
                 if(resu[0]) {
                     if(md5(req.body.password) == resu[0].password) {
                         if(!resu[0].isVerified) return res.status(401).send({ "message": "Account not activated" })
-                        const user = JSON.parse(JSON.stringify(resu[0]))
-                        const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET)
-                        res.json(accessToken)
+                        const userId = JSON.parse(JSON.stringify(resu[0])).id
+                        util.signAccessToken(userId).then(token => res.json(token))
+                        // res.json(accessToken)
                     }
                     else
                         return res.status(401).send({ "message": "Invalid credentials" })
