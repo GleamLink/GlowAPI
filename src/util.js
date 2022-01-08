@@ -2,6 +2,18 @@ const mysql = require('mysql')
 const file = require('./util')
 const jwt = require('jsonwebtoken')
 
+let transporter = require('nodemailer').createTransport({
+    name: process.env.NODEMAILER_NAME,
+    host: process.env.NODEMAILER_HOST,
+    port: process.env.NODEMAILER_PORT,
+    secure: false,
+    auth: {
+        user: process.env.NODEMAILER_AUTH_USER,
+        pass: process.env.NODEMAILER_AUTH_PASS,
+    },
+    tls : { rejectUnauthorized: false }
+})
+
 module.exports.pool = mysql.createPool({
     connectionLimit: 10,
     host: process.env.MYSQL_HOST,
@@ -42,6 +54,36 @@ module.exports = {
         } catch (error) {
             console.error(error)
         }        
+    },
+    userExists: (email, username, cb) => {
+        if(email)
+            this.pool.query("SELECT * FROM users WHERE email = ?", [email], (err, res) => {
+                if(res.length) cb(err, true, "Email")
+                else this.pool.query("SELECT * FROM users WHERE username = ?", [username], (err, res) => {
+                    if(res.length) cb(err, true, "Username")
+                    else cb(err, false, "")
+                })
+            })
+    },
+    sendVerificationMail: (userId, email) => {
+        jwt.sign(userId, process.env.EMAIL_SECRET,  (err, emailToken) => {
+            const url = `http://${req.headers.host}/verify-email/${emailToken}`
+            
+            transporter.sendMail({
+                from: '"GlowAPP" <noreply@glowapp.eu>',
+                to: req.body.email,
+                subject: 'Glow - verify your email',
+                html: `
+                    <h1>Hello,</h1>
+                    <p>Thank you for registering on our website.</p>
+                    <p>Please verify your email address by clicking down below.</p>
+                    <p>This link expires in 10 minutes.</p>
+                    <a href="${url}">Verify</a>
+                `
+            }, (err, info) => {
+                if(err) return res.send(err)
+            })
+        })
     },
     signAccessToken: (userId) => {
         return new Promise((resolve, reject) => {
