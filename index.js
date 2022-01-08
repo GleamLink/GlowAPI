@@ -8,8 +8,8 @@ const port = process.env.GLOW_PORT
 const bodyParser = require('body-parser')
 
 
+app.use('/uploads', express.static('uploads'))
 app.use(bodyParser.urlencoded({ extended: true }))
-
 app.use(bodyParser.json())
 
 const jsonErrorHandler = async (err, req, res, next) => {
