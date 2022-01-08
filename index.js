@@ -7,8 +7,8 @@ const fs = require('fs')
 const port = process.env.GLOW_PORT
 const bodyParser = require('body-parser')
 
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
+
+app.use(bodyParser.urlencoded({ extended: true }))
 
 app.use(bodyParser.json())
 
