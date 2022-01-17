@@ -58,9 +58,14 @@ module.exports.Router = class Routes extends Router {
 
         // GET @me/avatar - returns the avatar of the user (if none, returns null)
         this.get('/@me/avatar', authToken, async (req, res) => {
-            if(util.getUser(req.user.userId, (err, res) => {
+            util.getUser(req.user.userId, (err, resu) => {
+                if(err) return res.send(err)
+                if(resu.avatar) res.sendFile(`${process.cwd()}/forest/assets/avatars/${resu.avatar}`, (err) => {
+                    if(err) return res.send({"message": "There is no avatar available with this name. Please reupload your avatar."})
+                })
+                else res.sendStatus(404).send({"message": "There is no avatar present"})
                 
-            }))
+            })
         })
 
         // PATCH @me - edit user profile
