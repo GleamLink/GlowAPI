@@ -8,7 +8,8 @@ const port = process.env.GLOW_PORT
 const bodyParser = require('body-parser')
 
 
-app.use('/uploads', express.static('uploads'))
+app.use('/forest/assets/avatars', express.static('forest/assets/avatars'))
+app.use('/forest/assets/logos', express.static('forest/assets/logos'))
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 

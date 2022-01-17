@@ -6,7 +6,7 @@ const util = require('../src/util')
 
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {
-        cb(null, 'uploads/')
+        cb(null, 'forest/assets/avatars')
     },
     filename: function(req, file, cb) {
         console.log(file)
@@ -44,19 +44,26 @@ module.exports.Router = class Routes extends Router {
                 return res.send({"message": "404: Not found"});
             }
            
-        });
-
-        // @me - shows information about the user with token in Authorization
-        this.get('/@me', authToken, async (req, res) => {
-                util.getUser(req.user.userId, (err, resu) => {
-                    const user = resu
-                    delete user.password, delete user.isVerified, delete user.isAdmin
-                    console.log(user)
-                })
-                return res.json(req.user)
         })
 
-        // @me - edit user profile
+        // GET @me - shows information about the user with token in Authorization
+        this.get('/@me', authToken, async (req, res) => {
+            util.getUser(req.user.userId, (err, resu) => {
+                const user = resu
+                delete user.password, delete user.isVerified, delete user.isAdmin
+                console.log(user)
+            })
+            return res.json(req.user)
+        })
+
+        // GET @me/avatar - returns the avatar of the user (if none, returns null)
+        this.get('/@me/avatar', authToken, async (req, res) => {
+            if(util.getUser(req.user.userId, (err, res) => {
+                
+            }))
+        })
+
+        // PATCH @me - edit user profile
         this.patch('/@me', authToken, upload.single('avatar'), (req, res) => {
             if(!req.body.password) return res.status(401).send({"message": "Password required"})
             if(md5(req.body.password) !== req.user.password) return res.status(401).send({"message": "Wrong password"})
