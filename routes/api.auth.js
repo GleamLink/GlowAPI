@@ -21,7 +21,7 @@ module.exports.Router = class Routes extends Router {
             if(!validator.isEmail(req.body.email)) return res.status(400).send({"message": "Invalid email"})
 
             // Iterate random ID
-            let userId = Math.floor(Date.now()/1000).toString(16) + '.' + genRanHex(10)
+            let userId = Math.floor(Date.now()/1000).toString(16) + genRanHex(10)
             
             // Insert data
             await mysql.createQuery("INSERT INTO users (id, username, email, password) VALUES (?, ?, ?, ?)", 
