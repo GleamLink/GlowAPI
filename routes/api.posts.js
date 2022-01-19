@@ -6,7 +6,7 @@ module.exports.Router = class Routes extends Router {
     constructor() {
         super();
 
-        // Create new Post
+        // POST /posts/ - Create new Post
         this.post('/', authToken, (req, res) => {
             console.log(req.body.description)
             if(!req.body.description) return res.status(401).send({"message": "Description body required."}) // TODO: Image
@@ -16,9 +16,17 @@ module.exports.Router = class Routes extends Router {
             })
         });
 
-        // Get user posts
+        // GET /posts/ - Get user posts
         this.get('/', authToken, (req, res) => {
             util.getPosts(req.user.userId, (err, resu) => {
+                if(err) return res.send(err)
+                res.send(resu)
+            })
+        })
+
+        // GET /posts/:postId/ - Get specific user post
+        this.get('/:postId', authToken, (req, res) => {
+            util.getPost(req.user.userId, req.params.postId, (err, resu) => {
                 if(err) return res.send(err)
                 res.send(resu)
             })

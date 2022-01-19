@@ -150,5 +150,10 @@ module.exports = {
         this.pool.query('SELECT * FROM posts WHERE userId = ?', [userId], (err, res) => {
             return callBack(err, res)
         })
+    },
+    getPost: (userId, postId, callBack) => {
+        this.pool.query('SELECT * FROM posts WHERE userId = ? AND id = ?', [userId, postId], (err, res) => {
+            return callBack(err, res)
+        })
     }
 }
