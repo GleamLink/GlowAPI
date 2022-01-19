@@ -1,6 +1,7 @@
 const mysql = require('mysql')
 const file = require('./util')
 const jwt = require('jsonwebtoken')
+const res = require('express/lib/response')
 
 let transporter = require('nodemailer').createTransport({
     name: process.env.NODEMAILER_NAME,
@@ -14,6 +15,8 @@ let transporter = require('nodemailer').createTransport({
     tls : { rejectUnauthorized: false }
 })
 
+const genRanHex = size => [...Array(size)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');
+
 module.exports.pool = mysql.createPool({
     connectionLimit: 10,
     host: process.env.MYSQL_HOST,
@@ -22,6 +25,7 @@ module.exports.pool = mysql.createPool({
     database: process.env.MYSQL_DATABASE
 }),
 module.exports = {
+    // USER ACCOUNT
     getUser: async (userId, callback) => {
         await this.pool.query('SELECT * FROM users WHERE id=?', [userId], (err, res) => {
             if(err) return console.log(err)
@@ -126,4 +130,25 @@ module.exports = {
             })
         })
     },
+    // !!USER ACCOUNT
+    // POSTS
+    createPost: (userId, desc, img, callBack) => {
+        const randomDateId = Math.floor(Date.now()/1000).toString(16) + genRanHex(10);
+        this.pool.query("INSERT INTO posts (id, userId, description, imageId, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?)", 
+        [
+            randomDateId,
+            userId,
+            desc,
+            img,
+            Math.floor(new Date() / 1000).toString(),
+            Math.floor(new Date() / 1000).toString()
+        ], (err, resu) => {
+            return callBack(err, resu)
+        })
+    },
+    getPosts: (userId, callBack) => {
+        this.pool.query('SELECT * FROM posts WHERE userId = ?', [userId], (err, res) => {
+            return callBack(err, res)
+        })
+    }
 }

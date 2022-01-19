@@ -8,8 +8,21 @@ module.exports.Router = class Routes extends Router {
 
         // Create new Post
         this.post('/', authToken, (req, res) => {
-            util.getUser(req.user.userId, (err, user) => res.send(user.id))
+            console.log(req.body.description)
+            if(!req.body.description) return res.status(401).send({"message": "Description body required."}) // TODO: Image
+            util.createPost(req.user.userId, req.body.description, 'NULL', (err, resu) => {
+                if(err) return res.send(err)
+                return res.send(resu)
+            })
         });
+
+        // Get user posts
+        this.get('/', authToken, (req, res) => {
+            util.getPosts(req.user.userId, (err, resu) => {
+                if(err) return res.send(err)
+                res.send(resu)
+            })
+        })
     }
 };
 
