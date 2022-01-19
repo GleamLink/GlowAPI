@@ -1,5 +1,5 @@
 package-lock.json
 .env
 node_modules/
-forest/
+forest/assets/*
 uploads/*
