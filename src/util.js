@@ -85,7 +85,7 @@ module.exports = {
                     <a href="${url}">Verify</a>
                 `
             }, (err, info) => {
-                if(err) return res.send(err)
+                if(err) return res.status(500).send(err)
             })
         })
     },
@@ -153,6 +153,11 @@ module.exports = {
     },
     getPost: (userId, postId, callBack) => {
         this.pool.query('SELECT * FROM posts WHERE userId = ? AND id = ?', [userId, postId], (err, res) => {
+            return callBack(err, res)
+        })
+    },
+    updatePost: (userId, postId, desc, callBack) => {
+        this.pool.query('UPDATE posts SET description = ? WHERE userId = ? AND id = ?', [desc, userId, postId], (err, res) => {
             return callBack(err, res)
         })
     }
