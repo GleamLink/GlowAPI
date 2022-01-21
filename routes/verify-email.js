@@ -11,7 +11,7 @@ module.exports.Router = class Routes extends Router {
                 const decoded = jwt.verify(req.params.token, process.env.EMAIL_SECRET)
                 console.log(decoded)
                 await mysql.createQuery('UPDATE users SET isVerified=1 WHERE id=?', [decoded], (err, resu) => {
-                    if(err) res.send(err)
+                    if(err) res.status(500).send(err)
                     res.send({"id": decoded.user, "isVerified": true})
                 })
                 
