@@ -1,7 +1,8 @@
 const express = require('express')
 const app = express()
-const session = require('express-session');
+var cookieParser = require('cookie-parser')
 const jwt = require('jsonwebtoken')
+
 require('dotenv').config()
 const fs = require('fs')
 const port = process.env.GLOW_PORT
@@ -18,10 +19,10 @@ const jsonErrorHandler = async (err, req, res, next) => {
 }
 app.use(jsonErrorHandler)
 
-app.use(session({ secret: `${Date.now()}`, resave: false, saveUninitialized: false }));
+app.use(cookieParser())
 
 app.use((req, res, next) => {
-    req.user = req.session.user
+    req.user = req.cookies.user
 
     next()
 });

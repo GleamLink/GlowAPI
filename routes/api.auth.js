@@ -58,7 +58,12 @@ module.exports.Router = class Routes extends Router {
                         const userId = JSON.parse(JSON.stringify(resu[0])).id
                         
                         signAccessToken(userId)
-                        .then(aToken => signRefreshToken(userId).then(rToken => res.send({ aToken, rToken })))
+                        .then(aToken => {
+                            res.cookie("token", aToken, {
+                                httpOnly: true,
+                            })
+                            res.send("Logged")
+                        })
                     }
                     else
                         return res.status(401).send({ "message": "Invalid credentials" })
