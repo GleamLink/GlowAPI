@@ -2,12 +2,16 @@ const express = require('express')
 const app = express()
 var cookieParser = require('cookie-parser')
 const jwt = require('jsonwebtoken')
+const cors = require("cors")
 
 require('dotenv').config()
 const fs = require('fs')
 const port = process.env.GLOW_PORT
 const bodyParser = require('body-parser')
 
+app.use(cors({
+    origin: "*"
+}))
 
 app.use('/forest/assets/avatars', express.static('forest/assets/avatars'))
 app.use('/forest/assets/logos', express.static('forest/assets/logos'))
