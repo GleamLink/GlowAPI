@@ -62,7 +62,7 @@ module.exports.Router = class Routes extends Router {
                             res.cookie("token", aToken, {
                                 httpOnly: true,
                             })
-                            res.send("Logged")
+                            res.redirect('/api/auth/account')
                         })
                     }
                     else

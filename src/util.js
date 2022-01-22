@@ -93,10 +93,7 @@ module.exports = {
         return new Promise((resolve, reject) => {
             const payload = {userId: userId}
             const secret = process.env.ACCESS_TOKEN_SECRET
-            const options = {
-                expiresIn: '1h',
-            }
-            jwt.sign(payload, secret, options, (err, token) => {
+            jwt.sign(payload, secret, { expiresIn: '1h' }, (err, token) => {
                 if(err) {
                     reject(500)
                 }
@@ -108,22 +105,27 @@ module.exports = {
         // const authHeader = req.headers['authorization']
         // const token = authHeader && authHeader.split(' ')[1]
         const token = req.cookies.token
-        if(token == null) return res.sendStatus(401)
+        try {
+            if(token == null) return res.sendStatus(401)
 
-        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-            if(err) return res.status(403).send(err)
-            req.user = user
-            next()
-        })
+            jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+                if(err) {
+                    res.clearCookie("token")
+                    return res.redirect('/')
+                }
+                req.user = user
+                next()
+            })
+        } catch (error) {
+            res.status(500).send(error)
+        }
+        
     },
     signRefreshToken: (userId) => {
         return new Promise((resolve, reject) => {
-            const payload = {userId: userId}
+            const payload = { userId: userId }
             const secret = process.env.REFRESH_TOKEN_SECRET
-            const options = {
-                expiresIn: '6m',
-            }
-            jwt.sign(payload, secret, options, (err, token) => {
+            jwt.sign(payload, secret, { expiresIn: '6m' }, (err, token) => {
                 if(err) {
                     reject(500)
                 }
