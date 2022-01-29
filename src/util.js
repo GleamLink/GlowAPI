@@ -112,6 +112,7 @@ module.exports = {
                     return res.status(500).send(err)
                 }
                 req.user = user
+                req.token = token
                 next()
             })
         } catch (err) {

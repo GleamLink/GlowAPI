@@ -79,6 +79,7 @@ module.exports.Router = class Routes extends Router {
                     "id": resu.id,
                     "username": resu.username,
                     "email": resu.email,
+                    "token": req.token
                 })
             })
         })
