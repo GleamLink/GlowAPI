@@ -102,37 +102,35 @@ module.exports = {
         })
     },
     verifyAccessToken: (req, res, next) => {
-        // const authHeader = req.headers['authorization']
-        // const token = authHeader && authHeader.split(' ')[1]
-        const token = req.cookies.token
+        const authHeader = req.headers['authorization']
+        const token = authHeader && authHeader.split(' ')[1]
         try {
             if(token == null) return res.sendStatus(401)
 
             jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
                 if(err) {
-                    res.clearCookie("token")
-                    return res.redirect('/')
+                    return res.status(500).send(err)
                 }
                 req.user = user
                 next()
             })
-        } catch (error) {
-            res.status(500).send(error)
+        } catch (err) {
+            res.status(500).send(err)
         }
         
     },
-    signRefreshToken: (userId) => {
-        return new Promise((resolve, reject) => {
-            const payload = { userId: userId }
-            const secret = process.env.REFRESH_TOKEN_SECRET
-            jwt.sign(payload, secret, { expiresIn: '6m' }, (err, token) => {
-                if(err) {
-                    reject(500)
-                }
-                resolve(token)
-            })
-        })
-    },
+    // signRefreshToken: (userId) => {
+    //     return new Promise((resolve, reject) => {
+    //         const payload = { userId: userId }
+    //         const secret = process.env.REFRESH_TOKEN_SECRET
+    //         jwt.sign(payload, secret, { expiresIn: '6m' }, (err, token) => {
+    //             if(err) {
+    //                 reject(500)
+    //             }
+    //             resolve(token)
+    //         })
+    //     })
+    // },
     // !!USER ACCOUNT
     // POSTS
     createPost: (userId, desc, img, callBack) => {
