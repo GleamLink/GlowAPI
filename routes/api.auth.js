@@ -59,10 +59,7 @@ module.exports.Router = class Routes extends Router {
                         
                         signAccessToken(userId)
                         .then(aToken => {
-                            res.cookie("token", aToken, {
-                                httpOnly: true,
-                            })
-                            res.redirect('/api/auth/account')
+                            res.json({"token": aToken})
                         })
                     }
                     else
