@@ -75,12 +75,13 @@ module.exports.Router = class Routes extends Router {
             getUser(req.user.userId, (err, resu) => {
                 
                 if(err) { console.log(err); res.status(500).send(err) }
-                res.json({
+                return res.json({
                     "id": resu.id,
                     "username": resu.username,
                     "email": resu.email,
                 })
             })
+            return res.status(401).send({"message": "Unknown token"})
         })
     }
 };
