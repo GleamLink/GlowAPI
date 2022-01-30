@@ -66,15 +66,15 @@ module.exports = {
                 })
             })
     },
-    sendVerificationMail: (userId, email) => {
+    sendVerificationMail: (userId, email, header) => {
         jwt.sign(userId, process.env.EMAIL_SECRET,  (err, emailToken) => {
             if(err) console.log(err)
-            const url = `http://${req.headers.host}/verify-email/${emailToken}`
+            const url = `http://${header}/verify-email/${emailToken}`
             
             try {
                 transporter.sendMail({
                     from: '"GlowAPP" <noreply@glowapp.eu>',
-                    to: req.body.email,
+                    to: email,
                     subject: 'Glow - verify your email',
                     html: `
                         <h1>Hello,</h1>
@@ -85,7 +85,6 @@ module.exports = {
                     `
                 }, (err, info) => {
                     console.log(err)
-                    if(err) return res.status(500).send(err)
                 })
             } catch (error) {
                 console.log(error)
