@@ -68,6 +68,7 @@ module.exports = {
     },
     sendVerificationMail: (userId, email) => {
         jwt.sign(userId, process.env.EMAIL_SECRET,  (err, emailToken) => {
+            if(err) console.log(err)
             const url = `http://${req.headers.host}/verify-email/${emailToken}`
             
             transporter.sendMail({
