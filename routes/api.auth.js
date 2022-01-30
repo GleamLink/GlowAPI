@@ -39,7 +39,7 @@ module.exports.Router = class Routes extends Router {
                 
                 // Everything is good
                 else {
-                    sendVerificationMail(userId, req.body.email)
+                    sendVerificationMail(userId, req.body.email, req.headers.host)
                     res.status(200).send({ "message": "Check emails for account activation. This can take up to 5 minutes." })
                 }
             })
