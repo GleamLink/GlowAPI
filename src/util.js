@@ -5,14 +5,6 @@ const res = require('express/lib/response')
 
 let transporter = require('nodemailer').createTransport({
     name: process.env.NODEMAILER_NAME,
-    host: process.env.NODEMAILER_HOST,
-    port: process.env.NODEMAILER_PORT,
-    secure: false,
-    auth: {
-        user: process.env.NODEMAILER_AUTH_USER,
-        pass: process.env.NODEMAILER_AUTH_PASS,
-    },
-    tls : { rejectUnauthorized: false }
 })
 
 const genRanHex = size => [...Array(size)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');
