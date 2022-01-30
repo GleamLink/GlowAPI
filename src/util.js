@@ -71,21 +71,26 @@ module.exports = {
             if(err) console.log(err)
             const url = `http://${req.headers.host}/verify-email/${emailToken}`
             
-            transporter.sendMail({
-                from: '"GlowAPP" <noreply@glowapp.eu>',
-                to: req.body.email,
-                subject: 'Glow - verify your email',
-                html: `
-                    <h1>Hello,</h1>
-                    <p>Thank you for registering on our website.</p>
-                    <p>Please verify your email address by clicking down below.</p>
-                    <p>This link expires in 10 minutes.</p>
-                    <a href="${url}">Verify</a>
-                `
-            }, (err, info) => {
-                console.log(err)
-                if(err) return res.status(500).send(err)
-            })
+            try {
+                transporter.sendMail({
+                    from: '"GlowAPP" <noreply@glowapp.eu>',
+                    to: req.body.email,
+                    subject: 'Glow - verify your email',
+                    html: `
+                        <h1>Hello,</h1>
+                        <p>Thank you for registering on our website.</p>
+                        <p>Please verify your email address by clicking down below.</p>
+                        <p>This link expires in 10 minutes.</p>
+                        <a href="${url}">Verify</a>
+                    `
+                }, (err, info) => {
+                    console.log(err)
+                    if(err) return res.status(500).send(err)
+                })
+            } catch (error) {
+                console.log(error)
+            }
+            
         })
     },
     signAccessToken: (userId) => {
