@@ -6,6 +6,7 @@ const res = require('express/lib/response')
 let transporter = require('nodemailer').createTransport({
     host: process.env.NODEMAILER_NAME,
     port: process.env.NODEMAILER_PORT,
+    secure: false,
     tls: {             
         rejectUnauthorized: false
     }
