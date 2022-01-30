@@ -77,6 +77,7 @@ module.exports = {
                     <a href="${url}">Verify</a>
                 `
             }, (err, info) => {
+                console.log(err)
                 if(err) return res.status(500).send(err)
             })
         })
