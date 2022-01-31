@@ -48,8 +48,8 @@ module.exports.Router = class Routes extends Router {
         })
 
         this.post('/login', async (req, res) => {
-            if(!req.body.email) return res.status(400).send({"message": "Body 'email' is unknown"})
-            if(!req.body.password) return res.status(400).send({"message": "Body 'password' is unknown"})
+            if(!req.body.email) return res.status(400).send({"message": "Please provide an email"})
+            if(!req.body.password) return res.status(400).send({"message": "Please provide a password"})
             await mysql.createQuery('SELECT * FROM users WHERE email = ?', [req.body.email], (err, resu) => {
                 if(err) return console.error(err)
                 if(resu[0]) {
