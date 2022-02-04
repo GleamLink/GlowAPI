@@ -65,7 +65,7 @@ module.exports.Router = class Routes extends Router {
                 if(resu.avatar) res.sendFile(`${process.cwd()}/forest/assets/avatars/${resu.avatar}`, (err) => {
                     if(err) return res.send({"message": "There is no avatar available with this name. Please reupload your avatar."})
                 })
-                else res.sendStatus(404).send({"message": "There is no avatar present"})
+                else res.status(404).send({"message": "There is no avatar present"})
                 
             })
         })
@@ -77,7 +77,7 @@ module.exports.Router = class Routes extends Router {
                 if(err) return res.status(500).send(err)
                 if(md5(req.body.password) !== resu.password) return res.status(401).send({"message": "Wrong password"})
                 util.updateUser(req.user.id, req.body.username, req.file.filename, req.body.banner, req.body.banner_color, (isErr, erro) => {
-                    if(isErr) return res.sendStatus(500).send(erro)
+                    if(isErr) return res.status(500).send(erro)
                     else res.sendStatus(200)
                 })
             })
