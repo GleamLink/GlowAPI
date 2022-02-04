@@ -2,7 +2,7 @@ const { Router } = require('express')
 const jwt = require('jsonwebtoken')
 const md5 = require('md5')
 const multer = require('multer')
-const { getUser } = require('../src/util')
+const { getUser, verifyAccessToken } = require('../src/util')
 const util = require('../src/util')
 
 const storage = multer.diskStorage({
@@ -36,7 +36,7 @@ module.exports.Router = class Routes extends Router {
         super();
 
         // Root
-        this.get('/', authToken, (req, res) => {
+        this.get('/', verifyAccessToken, (req, res) => {
             if(req.user.isAdmin) {
                 req.mysql.query('SELECT * FROM users', (err, resu) => {
                     return res.json(resu)
@@ -48,7 +48,7 @@ module.exports.Router = class Routes extends Router {
         })
 
         // GET @me - shows information about the user with token in Authorization
-        this.get('/@me', authToken, async (req, res) => {
+        this.get('/@me', verifyAccessToken, async (req, res) => {
             util.getUser(req.user.userId, (err, resu) => {
                 const user = resu
                 delete user.password, delete user.isVerified, delete user.isAdmin
@@ -59,7 +59,7 @@ module.exports.Router = class Routes extends Router {
         })
 
         // GET @me/avatar - returns the avatar of the user (if none, returns null)
-        this.get('/@me/avatar', authToken, async (req, res) => {
+        this.get('/@me/avatar', verifyAccessToken, async (req, res) => {
             getUser(req.user.userId, (err, resu) => {
                 if(err) return res.status(500).send(err)
                 if(resu.avatar) res.sendFile(`${process.cwd()}/forest/assets/avatars/${resu.avatar}`, (err) => {
@@ -71,8 +71,9 @@ module.exports.Router = class Routes extends Router {
         })
 
         // PATCH @me - edit user profile
-        this.patch('/@me', authToken, upload.single('avatar'), (req, res) => {
+        this.patch('/@me', verifyAccessToken, upload.single('avatar'), (req, res) => {
             if(!req.body.password) return res.status(401).send({"message": "Password required"})
+            console.log(req.user.userId)
             getUser(req.user.userId, (err, resu) => {
                 if(err) return res.status(500).send(err)
                 if(md5(req.body.password) !== resu.password) return res.status(401).send({"message": "Wrong password"})
@@ -86,7 +87,7 @@ module.exports.Router = class Routes extends Router {
         })
 
         // :id - shows information about user with given id
-        this.get('/:id', authToken, async (req, res) => {
+        this.get('/:id', verifyAccessToken, async (req, res) => {
             await req.mysql.query('SELECT * FROM users WHERE id = ?', [req.params.id], (err, resu) => {
                 if (err) console.error(err)
                 return res.send({
@@ -100,7 +101,7 @@ module.exports.Router = class Routes extends Router {
         });
 
         // @me/friends - shows an array of all friends that user with specified Authorization Token has
-        this.get('/@me/friends', authToken, async (req, res) => {
+        this.get('/@me/friends', verifyAccessToken, async (req, res) => {
             await req.mysql.query('SELECT * FROM friends WHERE user = ?', [req.user.id], (err, resu) => {
                 res.json(resu)
             })
@@ -109,18 +110,6 @@ module.exports.Router = class Routes extends Router {
         
     }
 };
-
-function authToken(req, res, next) {
-    const authHeader = req.headers['authorization']
-    const token = authHeader && authHeader.split(' ')[1]
-    if(token == null) return res.sendStatus(401)
-
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-        if(err) return res.sendStatus(403)
-        req.user = user
-        next()
-    })
-}
 
 function getExtension(filename) {
     var i = filename.lastIndexOf('.');
