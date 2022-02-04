@@ -76,8 +76,8 @@ module.exports.Router = class Routes extends Router {
             getUser(req.user.userId, (err, resu) => {
                 if(err) return res.status(500).send(err)
                 if(md5(req.body.password) !== resu.password) return res.status(401).send({"message": "Wrong password"})
-                util.updateUser(req.user.id, req.body.username, req.file.filename, req.body.banner, req.body.banner_color, (isErr, erro) => {
-                    if(isErr) return res.status(500).send(erro)
+                util.updateUser(req.user.id, req.body.username, req.file.filename, req.body.banner, req.body.banner_color, (myErr, myRes) => {
+                    if(myErr) return res.status(500).send(myErr)
                     else res.sendStatus(200)
                 })
             })

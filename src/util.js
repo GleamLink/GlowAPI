@@ -29,12 +29,12 @@ module.exports = {
             return callback(err, JSON.parse(JSON.stringify(res))[0])
         })
     },
-    updateUser: async (userId, username, avatar, banner, banner_color, callBack) => { /* TODO: Check if username is already taken or not */
+    updateUser: async (userId, username, avatar, banner, banner_color, callBack) => {
         try {
             await this.pool.query('SELECT * FROM users WHERE id=?', [userId], async (err, res) => {
                 // console.log(res)
-                if(err) return callBack(true, err)
-                if(!res.length) return callBack(true, new Error("Unexisting user"))
+                if(err) return callBack(err, res)
+                if(!res.length) return callBack(new Error("Unexisting user"), res)
                 if(username == null) username = JSON.parse(JSON.stringify(res))[0].username
                 if(avatar == null) avatar = JSON.parse(JSON.stringify(res))[0].avatar
                 if(banner == null) banner = JSON.parse(JSON.stringify(res))[0].banner
