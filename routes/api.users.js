@@ -60,7 +60,7 @@ module.exports.Router = class Routes extends Router {
 
         // GET @me/avatar - returns the avatar of the user (if none, returns null)
         this.get('/@me/avatar', authToken, async (req, res) => {
-            util.getUser(req.user.userId, (err, resu) => {
+            getUser(req.user.userId, (err, resu) => {
                 if(err) return res.status(500).send(err)
                 if(resu.avatar) res.sendFile(`${process.cwd()}/forest/assets/avatars/${resu.avatar}`, (err) => {
                     if(err) return res.send({"message": "There is no avatar available with this name. Please reupload your avatar."})
@@ -73,11 +73,15 @@ module.exports.Router = class Routes extends Router {
         // PATCH @me - edit user profile
         this.patch('/@me', authToken, upload.single('avatar'), (req, res) => {
             if(!req.body.password) return res.status(401).send({"message": "Password required"})
-            if(md5(req.body.password) !== getUser(req.user.userid).password) return res.status(401).send({"message": "Wrong password"})
-            util.updateUser(req.user.id, req.body.username, req.file.filename, req.body.banner, req.body.banner_color, (isErr, err) => {
-                if(isErr) return res.sendStatus(500).send(err)
-                else res.sendStatus(200)
+            getUser(req.user.userId, (err, resu) => {
+                if(err) return res.status(500).send(err)
+                if(md5(req.body.password) !== resu.password) return res.status(401).send({"message": "Wrong password"})
+                util.updateUser(req.user.id, req.body.username, req.file.filename, req.body.banner, req.body.banner_color, (isErr, err) => {
+                    if(isErr) return res.sendStatus(500).send(err)
+                    else res.sendStatus(200)
+                })
             })
+            
             
         })
 
