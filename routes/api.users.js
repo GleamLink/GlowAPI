@@ -52,8 +52,9 @@ module.exports.Router = class Routes extends Router {
                 const user = resu
                 delete user.password, delete user.isVerified, delete user.isAdmin
                 console.log(user)
+                return res.json(user)
             })
-            return res.json(req.user)
+            
         })
 
         // GET @me/avatar - returns the avatar of the user (if none, returns null)
