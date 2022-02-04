@@ -2,6 +2,7 @@ const { Router } = require('express')
 const jwt = require('jsonwebtoken')
 const md5 = require('md5')
 const multer = require('multer')
+const { getUser } = require('../src/util')
 const util = require('../src/util')
 
 const storage = multer.diskStorage({
@@ -72,7 +73,7 @@ module.exports.Router = class Routes extends Router {
         // PATCH @me - edit user profile
         this.patch('/@me', authToken, upload.single('avatar'), (req, res) => {
             if(!req.body.password) return res.status(401).send({"message": "Password required"})
-            if(md5(req.body.password) !== req.user.password) return res.status(401).send({"message": "Wrong password"})
+            if(md5(req.body.password) !== getUser(req.user.userid).password) return res.status(401).send({"message": "Wrong password"})
             util.updateUser(req.user.id, req.body.username, req.file.filename, req.body.banner, req.body.banner_color, (isErr, err) => {
                 if(isErr) return res.sendStatus(500).send(err)
                 else res.sendStatus(200)
