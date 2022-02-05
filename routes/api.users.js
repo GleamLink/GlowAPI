@@ -2,7 +2,7 @@ const { Router } = require('express')
 const jwt = require('jsonwebtoken')
 const md5 = require('md5')
 const multer = require('multer')
-const { getUser, verifyAccessToken } = require('../src/util')
+const { getUser, verifyAccessToken, pool } = require('../src/util')
 const util = require('../src/util')
 
 const storage = multer.diskStorage({
@@ -77,7 +77,9 @@ module.exports.Router = class Routes extends Router {
             getUser(req.user.userId, (err, resu) => {
                 if(err) return res.status(500).send(err)
                 if(md5(req.body.password) !== resu.password) return res.status(401).send({"message": "Wrong password"})
-                util.updateUser(req.user.userId, req.body.username, req.file.filename, req.body.banner, req.body.banner_color, (myErr, myRes) => {
+                if(req.file == undefined) req.file = null
+                console.log(req.file);
+                util.updateUser(req.user.userId, req.body.username, req.file == undefined ? null : req.file.filename, req.body.banner, req.body.banner_color, (myErr, myRes) => {
                     if(myErr) return res.status(500).send(myErr)
                     else res.sendStatus(200)
                 })
@@ -101,7 +103,8 @@ module.exports.Router = class Routes extends Router {
 
         // @me/friends - shows an array of all friends that user with specified Authorization Token has
         this.get('/@me/friends', verifyAccessToken, async (req, res) => {
-            await req.mysql.query('SELECT * FROM friends WHERE user = ?', [req.user.id], (err, resu) => {
+            util.pool.query('SELECT * FROM friends WHERE user = ?', [req.user.id], (err, resu) => {
+                if(err) res.json(err)
                 res.json(resu)
             })
         });
