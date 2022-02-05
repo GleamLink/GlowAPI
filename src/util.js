@@ -48,6 +48,9 @@ module.exports = {
                     userId
                 ],
                 (err, res) => {
+                    if(err) {
+                        if(err.errno == 1062/*1062 = ER_DUP_ENTRY*/) return callBack({ "message": err.sqlMessage }, res)
+                    }
                     return callBack(err, res)
                 })
             })
