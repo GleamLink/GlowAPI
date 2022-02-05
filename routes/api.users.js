@@ -77,7 +77,7 @@ module.exports.Router = class Routes extends Router {
             getUser(req.user.userId, (err, resu) => {
                 if(err) return res.status(500).send(err)
                 if(md5(req.body.password) !== resu.password) return res.status(401).send({"message": "Wrong password"})
-                util.updateUser(req.user.id, req.body.username, req.file.filename, req.body.banner, req.body.banner_color, (myErr, myRes) => {
+                util.updateUser(req.user.userId, req.body.username, req.file.filename, req.body.banner, req.body.banner_color, (myErr, myRes) => {
                     if(myErr) return res.status(500).send(myErr)
                     else res.sendStatus(200)
                 })
@@ -88,17 +88,16 @@ module.exports.Router = class Routes extends Router {
 
         // :id - shows information about user with given id
         this.get('/:id', verifyAccessToken, async (req, res) => {
-            await req.mysql.query('SELECT * FROM users WHERE id = ?', [req.params.id], (err, resu) => {
+            getUser(req.params.id, (err, resu) => {
                 if (err) console.error(err)
-                return res.send({
-                    "id": resu[0].id, 
-                    "username": resu[0].username, 
-                    "avatar": resu[0].avatar,
-                    "banner": resu[0].banner,
-                    "banner_color": resu[0].banner_color
-                })
+                delete resu.isAdmin
+                delete resu.password
+                delete resu.email
+                delete resu.locale
+                delete resu.isVerified
+                return res.send(resu)
             })
-        });
+        })
 
         // @me/friends - shows an array of all friends that user with specified Authorization Token has
         this.get('/@me/friends', verifyAccessToken, async (req, res) => {
