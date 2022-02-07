@@ -4,6 +4,7 @@ const md5 = require('md5')
 const multer = require('multer')
 const { getUser, verifyAccessToken, pool } = require('../src/util')
 const util = require('../src/util')
+const { getFollowers, getFollowing, isFriend } = require('../src/utils/followers')
 
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {
@@ -70,6 +71,30 @@ module.exports.Router = class Routes extends Router {
             })
         })
 
+        // GET @me/followers - return an array of the followers of the user
+        this.get('/@me/followers', verifyAccessToken, (req, res) => {
+            getFollowers(req.user.userId, (err, resu) => {
+                if(err) return res.status(500).send(err)
+                res.send(resu)
+            })
+        })
+
+        // GET @me/following - return an array of the followers of the user
+        this.get('/@me/following', verifyAccessToken, (req, res) => {
+            getFollowing(req.user.userId, (err, resu) => {
+                if(err) return res.status(500).send(err)
+                res.send(resu)
+            })
+        })
+
+        // GET @me/friends/:id - return an boolean if user and ':id' follow each other (friends)
+        this.get('/@me/friends/:id', verifyAccessToken, (req, res) => {
+            isFriend(req.user.userId, req.params.id, (err, resu) => {
+                if(err) return res.status(500).send(err)
+                res.send(resu)
+            })
+        })
+
         // PATCH @me - edit user profile
         this.patch('/@me', verifyAccessToken, upload.single('avatar'), (req, res) => {
             if(!req.body.password) return res.status(401).send({"message": "Password required"})
@@ -88,7 +113,7 @@ module.exports.Router = class Routes extends Router {
             
         })
 
-        // :id - shows information about user with given id
+        // GET :id - shows information about user with given id
         this.get('/:id', verifyAccessToken, async (req, res) => {
             getUser(req.params.id, (err, resu) => {
                 if (err) console.error(err)
@@ -101,15 +126,15 @@ module.exports.Router = class Routes extends Router {
             })
         })
 
-        // @me/friends - shows an array of all friends that user with specified Authorization Token has
-        this.get('/@me/friends', verifyAccessToken, async (req, res) => {
-            util.pool.query('SELECT * FROM friends WHERE user = ?', [req.user.id], (err, resu) => {
-                if(err) res.json(err)
-                res.json(resu)
-            })
-        });
-
-        
+        // POST :id/follow - posts an follow request to given ':id'
+        this.post('/:id/follow', verifyAccessToken, (req, res) => {
+            if(req.user.userId === req.params.id) return res.status(403).send({"message": "You can't follow yourself."})
+            try {
+                const user = getUser('')
+            } catch (err) {
+                return res.status(500).send(err)
+            }
+        })
     }
 };
 
