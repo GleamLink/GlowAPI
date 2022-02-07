@@ -23,8 +23,8 @@ module.exports.pool = mysql.createPool({
 }),
 module.exports = {
     // USER ACCOUNT
-    getUser: async (userId, callback) => {
-        await this.pool.query('SELECT * FROM users WHERE id=?', [userId], (err, res) => {
+    getUser: (userId, callback) => {
+        this.pool.query('SELECT * FROM users WHERE id=?', [userId], (err, res) => {
             if(err) return console.log(err)
             return callback(err, JSON.parse(JSON.stringify(res))[0])
         })
@@ -51,6 +51,7 @@ module.exports = {
                     if(err) {
                         if(err.errno == 1062/*1062 = ER_DUP_ENTRY*/) return callBack({ "message": err.sqlMessage }, res)
                     }
+                    if(!callBack) return res
                     return callBack(err, res)
                 })
             })
