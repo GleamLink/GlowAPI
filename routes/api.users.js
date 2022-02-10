@@ -4,7 +4,7 @@ const md5 = require('md5')
 const multer = require('multer')
 const { getUser, verifyAccessToken, pool } = require('../src/util')
 const util = require('../src/util')
-const { getFollowers, getFollowing, isFriend } = require('../src/utils/followers')
+const { getFollowers, getFollowing, isFriend, sendFollowRequest, acceptFollowRequest } = require('../src/utils/followers')
 
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {
@@ -71,6 +71,7 @@ module.exports.Router = class Routes extends Router {
             })
         })
 
+        // FOLLOWERS/FOLLOWING/FRIENDS
         // GET @me/followers - return an array of the followers of the user
         this.get('/@me/followers', verifyAccessToken, (req, res) => {
             getFollowers(req.user.userId, (err, resu) => {
@@ -87,6 +88,25 @@ module.exports.Router = class Routes extends Router {
             })
         })
 
+        // POST :id/follow - follow :id
+        this.post('/:id/follow', verifyAccessToken, (req, res) => {
+            sendFollowRequest(req.user.userId, req.params.id, (err, resu) => {
+                if(err) return res.status(500).send(err)
+                res.send(resu)
+            })
+        })
+        // POST :id/follow/accept - accept a follow request from :id
+        this.post('/:id/follow/accept', verifyAccessToken, (req, res) => {
+            acceptFollowRequest(req.user.userId, req.params.id, (err, resu) => {
+                if(err) return res.status(500).send(err)
+                res.send("Accepted")
+            })
+        })
+        // DELETE :id/follow - unfollow :id
+        this.delete('/:id/follow', verifyAccessToken, (req, res) => {
+            
+        })
+
         // GET @me/friends/:id - return an boolean if user and ':id' follow each other (friends)
         this.get('/@me/friends/:id', verifyAccessToken, (req, res) => {
             isFriend(req.user.userId, req.params.id, (err, resu) => {
@@ -94,6 +114,8 @@ module.exports.Router = class Routes extends Router {
                 res.send(resu)
             })
         })
+
+        // !FOLLOWERS/FOLLOWING/FRIENDS
 
         // PATCH @me - edit user profile
         this.patch('/@me', verifyAccessToken, upload.single('avatar'), (req, res) => {

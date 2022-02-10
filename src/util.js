@@ -25,7 +25,8 @@ module.exports = {
     // USER ACCOUNT
     getUser: (userId, callback) => {
         this.pool.query('SELECT * FROM users WHERE id=?', [userId], (err, res) => {
-            if(err) return console.log(err)
+            if(err) return callback(err, null)
+            if(!res.length) return callback({"message": "Unknown user."}, null)
             return callback(err, JSON.parse(JSON.stringify(res))[0])
         })
     },
