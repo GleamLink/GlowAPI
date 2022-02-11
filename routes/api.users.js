@@ -2,7 +2,7 @@ const { Router } = require('express')
 const jwt = require('jsonwebtoken')
 const md5 = require('md5')
 const multer = require('multer')
-const { getUser, verifyAccessToken, pool } = require('../src/util')
+const { getUser, verifyAccessToken, pool, usernameToId } = require('../src/util')
 const util = require('../src/util')
 const { getFollowers, getFollowing, isFriend, sendFollowRequest, acceptFollowRequest } = require('../src/utils/followers')
 
@@ -46,6 +46,14 @@ module.exports.Router = class Routes extends Router {
                 return res.send({"message": "404: Not found"});
             }
            
+        })
+
+        // GET /user/search - returns an userId if the body username exists
+        this.get('/search/:username', verifyAccessToken, (req, res) => {
+            usernameToId(req.params.username, (err, resu) => {
+                if(err) return res.status(500).send(err)
+                res.send(resu)
+            })
         })
 
         // GET @me - shows information about the user with token in Authorization
