@@ -30,6 +30,16 @@ module.exports = {
             return callback(err, JSON.parse(JSON.stringify(res))[0])
         })
     },
+    usernameToId: (userName, cb) => {
+        try {
+            this.pool.query('SELECT id FROM users WHERE username=?', [userName], (err, res) => {
+                if(!res.length) return cb({"message": "Unknown username."}, null)
+                return cb(null, res[0].id)
+            })
+        } catch (err) {
+            cb(err, null)
+        }
+    },
     updateUser: async (userId, username, avatar, banner, banner_color, callBack) => {
         try {
             await this.pool.query('SELECT * FROM users WHERE id=?', [userId], async (err, res) => {
