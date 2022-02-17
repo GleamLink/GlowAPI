@@ -25,6 +25,7 @@ module.exports = {
     // USER ACCOUNT
     getUser: (userId, callback) => {
         this.pool.query('SELECT * FROM users WHERE id=?', [userId], (err, res) => {
+            console.log("AAA " + res, err)
             if(err) return callback(err, null)
             if(!res.length) return callback({"message": "Unknown user."}, null)
             return callback(err, JSON.parse(JSON.stringify(res))[0])
@@ -181,3 +182,5 @@ module.exports = {
         })
     }
 }
+
+module.exports.genRanHex = size => [...Array(size)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');

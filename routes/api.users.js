@@ -4,7 +4,7 @@ const md5 = require('md5')
 const multer = require('multer')
 const { getUser, verifyAccessToken, pool, usernameToId } = require('../src/util')
 const util = require('../src/util')
-const { getFollowers, getFollowing, isFriend, sendFollowRequest, acceptFollowRequest } = require('../src/utils/followers')
+const { getFollowers, getFollowing, isFriend, sendFollowRequest, acceptFollowRequest, getFollowRequests } = require('../src/utils/followers')
 
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {
@@ -80,6 +80,18 @@ module.exports.Router = class Routes extends Router {
         })
 
         // FOLLOWERS/FOLLOWING/FRIENDS
+
+        // GET @me/followers/requests - return an array of the follow requests from other users to this user
+        this.get('/@me/followers/requests', verifyAccessToken, (req, res) => {
+            getFollowRequests(req.user.userId, (err, resu) => {
+                if(err) return res.status(500).send(err)
+                delete resu.id
+                delete resu.acceptedDate
+                delete resu.requestedId
+                res.send(resu)
+            })
+        })
+
         // GET @me/followers - return an array of the followers of the user
         this.get('/@me/followers', verifyAccessToken, (req, res) => {
             getFollowers(req.user.userId, (err, resu) => {
@@ -96,8 +108,23 @@ module.exports.Router = class Routes extends Router {
             })
         })
 
+        // GET :id - shows information about user with given id
+        this.get('/:id', verifyAccessToken, (req, res) => {
+            getUser(req.params.id, (err, resu) => {
+                console.log(resu)
+                if (err) return res.status(500).send(err)
+                delete resu.isAdmin
+                delete resu.password
+                delete resu.email
+                delete resu.locale
+                delete resu.isVerified
+                return res.send(resu)
+            })
+        })
+
         // POST :id/follow - follow :id
         this.post('/:id/follow', verifyAccessToken, (req, res) => {
+            if(req.user.userId === req.params.id) return res.status(403).send({"message": "You can't follow yourself."})
             sendFollowRequest(req.user.userId, req.params.id, (err, resu) => {
                 if(err) return res.status(500).send(err)
                 res.send(resu)
@@ -141,29 +168,6 @@ module.exports.Router = class Routes extends Router {
             })
             
             
-        })
-
-        // GET :id - shows information about user with given id
-        this.get('/:id', verifyAccessToken, async (req, res) => {
-            getUser(req.params.id, (err, resu) => {
-                if (err) console.error(err)
-                delete resu.isAdmin
-                delete resu.password
-                delete resu.email
-                delete resu.locale
-                delete resu.isVerified
-                return res.send(resu)
-            })
-        })
-
-        // POST :id/follow - posts an follow request to given ':id'
-        this.post('/:id/follow', verifyAccessToken, (req, res) => {
-            if(req.user.userId === req.params.id) return res.status(403).send({"message": "You can't follow yourself."})
-            try {
-                const user = getUser('')
-            } catch (err) {
-                return res.status(500).send(err)
-            }
         })
     }
 };

@@ -22,6 +22,16 @@ module.exports.getFollowers = (userId, cb) => { // People following the User
         return cb(err, null)
     }
 }
+module.exports.getFollowRequests = (userId, cb) => {
+    try {
+        pool.query('SELECT * FROM followRequest WHERE requestedId = ? AND status = 1', [userId], (err, res) => {
+            if(!res.length) return cb({"message": "No requests."}, null)
+            return cb(null, res)
+        })
+    } catch (err) {
+        return cb(err, null)
+    }
+}
 module.exports.getFollowing = (userId, cb) => { // People the User follows
     try {
         pool.query('SELECT following FROM users WHERE id = ?', [userId], (err, res) => {
