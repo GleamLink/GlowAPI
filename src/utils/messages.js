@@ -1,3 +1,4 @@
+const res = require('express/lib/response')
 const mysql = require('mysql')
 const { genRanHex } = require("../util")
 
@@ -23,6 +24,16 @@ module.exports.createMessage = (conversationId, authorId, text, cb) => {
         ], (err, res) => {
             console.log("A: "+err,res)
             if(res.affectedRows > 0) return cb(null, "Message sended!")
+            return cb(null, res)
+        })
+    } catch (err) {
+        return cb(err, null)
+    }
+}
+
+module.exports.getMessages = (conversationId, cb) => {
+    try {
+        pool.query('SELECT * FROM messages WHERE conversationId = ? ORDER BY timestamp DESC', [conversationId], (err, res) => {
             return cb(null, res)
         })
     } catch (err) {
