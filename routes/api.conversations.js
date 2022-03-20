@@ -36,8 +36,9 @@ module.exports.Router = class Routes extends Router {
         // GET /conversations/:conversationId/messages - Returns all messages from specific conversation
         this.get('/:convId/messages', verifyAccessToken, (req, res) => {
             getConversationById(req.params.convId, (err, resu) => {
-                console.log(resu)
-                if(!resu) return res.json({"message": "No conversation with this id."})
+                console.log("A",resu)
+                // if(!resu) return res.json({"message": "No conversation with this id."})
+                if(!resu.members) return res.status(500).json({"message": "No conversation with this id."})
                 if(!resu.members.includes(req.user.userId)) return res.status(401).send({"message": "Unauthorized to see this conversation."})
                 getMessages(req.params.convId, (err, resu) => {
                     if(err) return res.status(500).send(err)

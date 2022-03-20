@@ -23,13 +23,34 @@ module.exports.pool = mysql.createPool({
 }),
 module.exports = {
     // USER ACCOUNT
-    getUser: (userId, callback) => {
-        this.pool.query('SELECT * FROM users WHERE id=?', [userId], (err, res) => {
-            console.log("AAA " + res, err)
-            if(err) return callback(err, null)
-            if(!res.length) return callback({"message": "Unknown user."}, null)
-            return callback(err, JSON.parse(JSON.stringify(res))[0])
-        })
+    getUser: (userId, cb) => {
+        try {
+            this.pool.query('SELECT * FROM users WHERE id=?', [userId], (err, res) => {
+                if(!res.length) {
+                    return cb({"message": "Unknown user."}, null)
+                }
+                if(res[0].followers.length > 0)
+                    res[0].followers = res[0].followers.split(',')
+                else res[0].followers = []
+                if(res[0].following.length > 0)
+                    res[0].following = res[0].following.split(',')
+                else res[0].following = []
+                return cb(null, JSON.parse(JSON.stringify(res))[0])
+            })
+        } catch (err) {
+            cb(err, null)
+        }
+        
+    },
+    getUsers: (cb) => {
+        try {
+            this.pool.query('SELECT id, username, email, avatar, banner, bio FROM users', (err, res) => {
+                cb(null, res)
+            })
+        } catch (err) {
+            cb(err, null)
+        }
+        
     },
     usernameToId: (userName, cb) => {
         try {
@@ -41,20 +62,18 @@ module.exports = {
             cb(err, null)
         }
     },
-    updateUser: async (userId, username, avatar, banner, banner_color, callBack) => {
+    updateUser: async (userId, username, banner, banner_color, callBack) => {
         try {
             await this.pool.query('SELECT * FROM users WHERE id=?', [userId], async (err, res) => {
                 // console.log(res)
                 if(err) return callBack(err, res)
                 if(!res.length) return callBack({"message": "Unexisting user"}, res)
                 if(username == null) username = JSON.parse(JSON.stringify(res))[0].username
-                if(avatar == null) avatar = JSON.parse(JSON.stringify(res))[0].avatar
                 if(banner == null) banner = JSON.parse(JSON.stringify(res))[0].banner
                 if(banner_color == null) banner_color = JSON.parse(JSON.stringify(res))[0].banner_color
-                await this.pool.query(`UPDATE users SET username=?, avatar=?, banner=?, banner_color=? WHERE id=?`,
+                await this.pool.query(`UPDATE users SET username=?, banner=?, banner_color=? WHERE id=?`,
                 [
                     username,
-                    avatar,
                     banner,
                     banner_color,
                     userId

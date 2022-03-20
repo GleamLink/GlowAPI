@@ -58,7 +58,7 @@ module.exports.getConversationById = (conversationId, cb) => {
     try {
         pool.query('SELECT * FROM conversations WHERE conversationId = ?', [conversationId], (err, res) => {
             console.log(res)
-            if(!res) return cb(null, [])
+            if(!res.length) return cb(null, [])
             res[0].members = res[0].members.split(',')
             cb(null, res[0])
         })

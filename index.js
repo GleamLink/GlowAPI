@@ -8,6 +8,7 @@ require('dotenv').config()
 const fs = require('fs')
 const port = process.env.GLOW_PORT
 const bodyParser = require('body-parser')
+const { imgToBase64 } = require('./src/utils/avatar')
 
 app.use(cors({
     origin: "*"
@@ -15,8 +16,9 @@ app.use(cors({
 
 app.use('/forest/assets/avatars', express.static('forest/assets/avatars'))
 app.use('/forest/assets/logos', express.static('forest/assets/logos'))
-app.use(bodyParser.urlencoded({ extended: true }))
-app.use(bodyParser.json())
+app.use('/forest/assets/posts', express.static('forest/assets/posts'))
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true, parameterLimit: 50000 }))
+app.use(bodyParser.json({ limit: '50mb' }))
 
 const jsonErrorHandler = async (err, req, res, next) => {
     res.status(err.status).send(err);

@@ -1,5 +1,4 @@
 package-lock.json
 .env
 node_modules/
-forest/assets/avatars
-uploads/*
+forest/

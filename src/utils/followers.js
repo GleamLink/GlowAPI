@@ -22,6 +22,7 @@ module.exports.getFollowers = (userId, cb) => { // People following the User
         return cb(err, null)
     }
 }
+
 module.exports.getFollowRequests = (userId, cb) => {
     try {
         pool.query('SELECT * FROM followRequest WHERE requestedId = ? AND status = 1', [userId], (err, res) => {
@@ -32,17 +33,19 @@ module.exports.getFollowRequests = (userId, cb) => {
         return cb(err, null)
     }
 }
+
 module.exports.getFollowing = (userId, cb) => { // People the User follows
     try {
         pool.query('SELECT following FROM users WHERE id = ?', [userId], (err, res) => {
             if(err) return cb(err, null)
             if(res[0].following === '') return cb(err, []) // empty array => no following
-            return cb(err, res[0].following.split(',')) 
+            return cb(err, res[0].following.split(','))
         })
     } catch (err) {
         return cb(err, null)
     }
 }
+
 module.exports.isFollowing = (userId, followingId) => {
     try {
         this.getFollowers(userId, (err, res) => {
@@ -54,6 +57,7 @@ module.exports.isFollowing = (userId, followingId) => {
         console.log(err)
     }
 }
+
 module.exports.hasSentRequest = (userId, followingId, cb) => {
     try {
         pool.query("SELECT * FROM followRequest WHERE requesterId = ? AND requestedId = ?", [userId, followingId], (err, res) => {
@@ -65,6 +69,7 @@ module.exports.hasSentRequest = (userId, followingId, cb) => {
         
     }
 }
+
 module.exports.sendFollowRequest = (userId, followingId, cb) => {
     try {
         if(this.isFollowing(userId, followingId))
@@ -80,6 +85,7 @@ module.exports.sendFollowRequest = (userId, followingId, cb) => {
         return cb(err, null)
     }
 }
+
 module.exports.acceptFollowRequest = (requestedId /*USER BEING FOLLOWED*/, requesterId /*USER WHO FOLLOWED*/, cb) => {
     try {
         if(this.isFollowing(requesterId, requestedId)) return cb({"message": "Already following."}, null)
@@ -119,6 +125,7 @@ module.exports.acceptFollowRequest = (requestedId /*USER BEING FOLLOWED*/, reque
         return cb(err, null)
     }
 }
+
 module.exports.isFriend = (userId, friendId, cb) => {
     this.getFollowers(userId, (err, res) => {
         if(err) return cb(err, null)

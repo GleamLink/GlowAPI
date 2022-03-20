@@ -24,7 +24,7 @@ module.exports.Router = class Routes extends Router {
             let userId = Math.floor(Date.now()/1000).toString(16) + genRanHex(10)
             
             // Insert data
-            await mysql.createQuery("INSERT INTO users (id, username, email, password) VALUES (?, ?, ?, ?)", 
+            await mysql.createQuery("INSERT INTO users (id, username, email, password) VALUES (?, ?, ?, ?)",
             [
                 userId,
                 req.body.username,
