@@ -3,14 +3,14 @@ const file = require('./util')
 const jwt = require('jsonwebtoken')
 const res = require('express/lib/response')
 
-let transporter = require('nodemailer').createTransport({
-    host: 'localhost',
-    port: process.env.NODEMAILER_PORT,
-    secure: false,
-    tls: {             
-        rejectUnauthorized: false
-    }
-})
+// let transporter = require('nodemailer').createTransport({
+//     host: 'localhost',
+//     port: process.env.NODEMAILER_PORT,
+//     secure: false,
+//     tls: {             
+//         rejectUnauthorized: false
+//     }
+// })
 
 const genRanHex = size => [...Array(size)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');
 
@@ -100,32 +100,32 @@ module.exports = {
                 })
             })
     },
-    sendVerificationMail: (userId, email, header) => {
-        jwt.sign(userId, process.env.EMAIL_SECRET,  (err, emailToken) => {
-            if(err) console.log(err)
-            const url = `http://${header}/verify-email/${emailToken}`
+    // sendVerificationMail: (userId, email, header) => {
+    //     jwt.sign(userId, process.env.EMAIL_SECRET,  (err, emailToken) => {
+    //         if(err) console.log(err)
+    //         const url = `http://${header}/verify-email/${emailToken}`
             
-            try {
-                transporter.sendMail({
-                    from: '"GlowAPP" <noreply@glowapp.eu>',
-                    to: email,
-                    subject: 'Glow - verify your email',
-                    html: `
-                        <h1>Hello,</h1>
-                        <p>Thank you for registering on our website.</p>
-                        <p>Please verify your email address by clicking down below.</p>
-                        <p>This link expires in 10 minutes.</p>
-                        <a href="${url}">Verify</a>
-                    `
-                }, (err, info) => {
-                    console.log(err)
-                })
-            } catch (error) {
-                console.log(error)
-            }
+    //         try {
+    //             transporter.sendMail({
+    //                 from: '"GlowAPP" <noreply@glowapp.eu>',
+    //                 to: email,
+    //                 subject: 'Glow - verify your email',
+    //                 html: `
+    //                     <h1>Hello,</h1>
+    //                     <p>Thank you for registering on our website.</p>
+    //                     <p>Please verify your email address by clicking down below.</p>
+    //                     <p>This link expires in 10 minutes.</p>
+    //                     <a href="${url}">Verify</a>
+    //                 `
+    //             }, (err, info) => {
+    //                 console.log(err)
+    //             })
+    //         } catch (error) {
+    //             console.log(error)
+    //         }
             
-        })
-    },
+    //     })
+    // },
     signAccessToken: (userId) => {
         return new Promise((resolve, reject) => {
             const payload = {userId: userId}

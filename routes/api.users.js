@@ -13,32 +13,17 @@ module.exports.Router = class Routes extends Router {
 
         // Root
         this.get('/', verifyAccessToken, (req, res) => {
-            getUser(req.user.userId, (err, resu) => {
-                console.log(resu.isAdmin)
-                if(!resu.isAdmin) return res.send({"message": "404: Not found"});
-                getUsers((err, resu) => {
-                    if(err) return res.status(500).send(resu)
-                    return res.json(resu)
-                })
-            })
+            return res.status(500).send("Not found")
         })
 
         // GET /users?searchUser=... - Searches a user with the beginning of his username
-        this.get('/search', verifyAccessToken, (req, res) => {
-            if(!req.query.searchUser) return res.send({"message": "You need to add a searchUser query."})
+        this.get('/', verifyAccessToken, (req, res) => {
+            if(!req.query.searchUser) return res.send({"message": "searchUser query is required."})
             findUser(req.query.searchUser, (err, resu) => {
                 if(err) return res.status(500).send(err)
                 res.send(resu)
             })
         })
-
-        // GET /user/search - returns an userId if the body username exists
-        // this.get('/search/:username', verifyAccessToken, (req, res) => {
-        //     usernameToId(req.params.username, (err, resu) => {
-        //         if(err) return res.status(500).send(err)
-        //         res.send(resu)
-        //     })
-        // })
 
         // GET /users/@me - shows information about the user with token in Authorization
         this.get('/@me', verifyAccessToken, async (req, res) => {
