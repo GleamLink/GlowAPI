@@ -2,9 +2,8 @@ const { Router } = require('express')
 const jwt = require('jsonwebtoken')
 const md5 = require('md5')
 const multer = require('multer')
-const { getUser, verifyAccessToken, pool, usernameToId, genRanHex, updateUser, getUsers } = require('../src/util')
+const { getUser, verifyAccessToken, genRanHex, updateUser } = require('../src/util')
 const { changeUserAvatar, isValidBase64, createBase64File } = require('../src/utils/avatar')
-const { getFollowers, getFollowing, isFriend, sendFollowRequest, acceptFollowRequest, getFollowRequests } = require('../src/utils/followers')
 const { findUser } = require('../src/utils/users')
 
 module.exports.Router = class Routes extends Router {
@@ -18,7 +17,7 @@ module.exports.Router = class Routes extends Router {
 
         // GET /users?searchUser=... - Searches a user with the beginning of his username
         this.get('/', verifyAccessToken, (req, res) => {
-            if(!req.query.searchUser) return res.send({"message": "searchUser query is required."})
+            if(!req.query.searchUser.length < 2) return res.send({"message": "At leats 2 characters are needed."})
             findUser(req.query.searchUser, (err, resu) => {
                 if(err) return res.status(500).send(err)
                 res.send(resu)
@@ -55,35 +54,6 @@ module.exports.Router = class Routes extends Router {
             })
         })
 
-        // FOLLOWERS/FOLLOWING/FRIENDS
-
-        // GET /users/@me/followers/requests - return an array of the follow requests from other users to this user
-        this.get('/@me/followers/requests', verifyAccessToken, (req, res) => {
-            getFollowRequests(req.user.userId, (err, resu) => {
-                if(err) return res.status(500).send(err)
-                delete resu.id
-                delete resu.acceptedDate
-                delete resu.requestedId
-                res.send(resu)
-            })
-        })
-
-        // GET /users/@me/followers - return an array of the followers of the user
-        this.get('/@me/followers', verifyAccessToken, (req, res) => {
-            getFollowers(req.user.userId, (err, resu) => {
-                if(err) return res.status(500).send(err)
-                res.send(resu)
-            })
-        })
-
-        // GET /users/@me/following - return an array of the followers of the user
-        this.get('/@me/following', verifyAccessToken, (req, res) => {
-            getFollowing(req.user.userId, (err, resu) => {
-                if(err) return res.status(500).send(err)
-                res.send(resu)
-            })
-        })
-
         // GET /users/:id - shows information about user with given id
         this.get('/:id', verifyAccessToken, (req, res) => {
             getUser(req.params.id, (err, resu) => {
@@ -96,26 +66,6 @@ module.exports.Router = class Routes extends Router {
                 delete resu.isVerified
                 return res.send(resu)
             })
-        })
-
-        // POST /users/:id/follow - follow :id
-        this.post('/:id/follow', verifyAccessToken, (req, res) => {
-            if(req.user.userId === req.params.id) return res.status(403).send({"message": "You can't follow yourself."})
-            sendFollowRequest(req.user.userId, req.params.id, (err, resu) => {
-                if(err) return res.status(500).send(err)
-                res.send(resu)
-            })
-        })
-        // POST /users/:id/follow/accept - accept a follow request from :id
-        this.post('/:id/follow/accept', verifyAccessToken, (req, res) => {
-            acceptFollowRequest(req.user.userId, req.params.id, (err, resu) => {
-                if(err) return res.status(500).send(err)
-                res.send("Accepted")
-            })
-        })
-        // DELETE /users/:id/follow - unfollow :id
-        this.delete('/:id/follow', verifyAccessToken, (req, res) => {
-            
         })
 
         // GET /users/@me/friends/:id - return an boolean if user and ':id' follow each other (friends)
