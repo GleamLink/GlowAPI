@@ -17,11 +17,14 @@
     "express-session": "^1.17.2",
     "fs": "^0.0.1-security",
     "is-base64": "^1.1.0",
-    "jsonwebtoken": "^8.5.1",
+    "jsonwebtoken": "^9.0.0",
     "md5": "^2.3.0",
     "multer": "^1.4.4",
     "mysql": "^2.18.1",
     "nodemailer": "^6.7.2",
     "validator": "^13.7.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
   }
 }
