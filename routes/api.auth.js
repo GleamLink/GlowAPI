@@ -1,92 +1,168 @@
-const { Router } = require('express')
-const jwt = require('jsonwebtoken')
-const mysql = require('../src/mysql_pool.js')
-const md5 = require('md5')
-const crypto = require('crypto')
-const validator = require('validator')
-const { verifyAccessToken, signAccessToken, getUser, signRefreshToken, userExists, sendVerificationMail } = require('../src/util')
+const { Router } = require("express")
+const jwt = require("jsonwebtoken")
+const mysql = require("../src/mysql_pool.js")
+const md5 = require("md5")
+const validator = require("validator")
+const bcrypt = require("bcrypt")
 
 module.exports.Router = class Routes extends Router {
     constructor() {
-        super();
+        super()
 
-        this.get('/', (req, res) => {
-           return res.send({"message": "404: Not found"});
-        });
-
-        this.post('/signup', async (req, res, next) => {
-            if(!req.body.username) return res.status(400).send({"message": "Please provide a username"})
-            if(!req.body.email) return res.status(400).send({"message": "Please provide an email"})
-            if(!req.body.password) return res.status(400).send({"message": "Please provide a password"})
-            if(!validator.isEmail(req.body.email)) return res.status(400).send({"message": "Invalid email"})
-
-            // Iterate random ID
-            let userId = Math.floor(Date.now()/1000).toString(16) + genRanHex(10)
-            
-            // Insert data
-            await mysql.createQuery("INSERT INTO users (id, username, email, password) VALUES (?, ?, ?, ?)",
-            [
-                userId,
-                req.body.username,
-                req.body.email,
-                md5(req.body.password)
-            ], (err, resu) => {
-                if(err) {
-                    // Check if username/email is already taken (username & email = unique entries)
-                    if(err.errno == 1062/*1062 = ER_DUP_ENTRY*/) return res.status(500).json({ "message": err.sqlMessage })
-                    else return res.status(500).send(err)
-                }
-                
-                // Everything is good
-                else {
-                    sendVerificationMail(userId, req.body.email, req.headers.host)
-                    res.status(200).send({ "message": "Check emails for account activation. This can take up to 5 minutes." })
-                }
-            })
-
-
+        this.get("/", (req, res) => {
+            return res.send({ message: "404: Not found" })
         })
 
-        this.post('/login', async (req, res) => {
-            if(!req.body.email) return res.status(400).send({"message": "Please provide an email"})
-            if(!req.body.password) return res.status(400).send({"message": "Please provide a password"})
-            await mysql.createQuery('SELECT * FROM users WHERE email = ?', [req.body.email], (err, resu) => {
-                if(err) return console.error(err)
-                if(resu[0]) {
-                    if(md5(req.body.password) == resu[0].password) {
-                        if(!resu[0].isVerified) return res.status(401).send({ "message": "Account not activated" })
-                        const userId = JSON.parse(JSON.stringify(resu[0])).id
-                        
-                        signAccessToken(userId)
-                        .then(aToken => {
-                            res.json({"token": aToken})
-                        })
-                    }
-                    else
-                        return res.status(401).send({ "message": "Invalid credentials" })
-                }
-                else 
-                    return res.status(401).send({ "message": "Invalid credentials" })
-            })
-            
-        });
+        this.post("/register", async (req, res) => {
+            let userId =
+                Math.floor(Date.now() / 1000).toString(16) + genRanHex(10)
+            const { username, email, password } = req.body
 
-        this.get('/account', verifyAccessToken, (req, res) => {
-            getUser(req.user.userId, (err, resu) => {
-                
-                if(err) { console.log(err); res.status(500).send(err) }
-                res.json({
-                    "id": resu.id,
-                    "username": resu.username,
-                    "email": resu.email,
-                    "token": req.token
+            if (!username || !email || !password) {
+                res.status(400).send(
+                    "Please provide a username, email, and password."
+                )
+                return
+            }
+
+            // Check if user with this email already exists in the database
+            const query = "SELECT * FROM users WHERE email = ?"
+            mysql.createQuery(query, [email], (err, result) => {
+                if (err) {
+                    console.log(err)
+                    res.status(500).send("Internal server error")
+                    return
+                }
+
+                if (result.length > 0) {
+                    res.status(400).send("Email already used")
+                    return
+                }
+
+                // Hash the password using bcrypt
+                bcrypt.hash(password, 10, (err, hashedPassword) => {
+                    if (err) {
+                        console.log(err)
+                        res.status(500).send("Internal server error")
+                        return
+                    }
+
+                    // Store the user's information (including the hashed password) in the database
+                    mysql.createQuery(
+                        "INSERT INTO users (id, username, email, password) VALUES (?, ?, ?, ?)",
+                        [userId, username, email, hashedPassword],
+                        (err, result) => {
+                            if (err) {
+                                console.log(err)
+                                res.status(500).send("Internal server error")
+                                return
+                            }
+
+                            res.status(200).send("User registered successfully")
+                        }
+                    )
                 })
             })
         })
+
+        this.post("/login", async (req, res) => {
+            const { email, password } = req.body
+
+            // Query the database to check if user exists
+            const query = `SELECT * FROM users WHERE email = ?`
+            mysql.createQuery(query, [email], (err, results) => {
+                if (err) {
+                    console.error("Error querying database: ", err)
+                    res.status(500).send("Internal server error")
+                    return
+                }
+
+                // Check if user exists
+                if (results.length === 0) {
+                    res.status(401).send("Invalid email or password")
+                    return
+                }
+
+                const user = results[0]
+                // Compare the provided password with the stored hash using bcrypt
+                bcrypt.compare(password, user.password, (err, result) => {
+                    if (err) {
+                        console.error("Error comparing passwords: ", err)
+                        res.status(500).send("Internal server error")
+                        return
+                    }
+
+                    // Check if password is correct
+                    if (!result) {
+                        res.status(401).send("Invalid email or password")
+                        return
+                    }
+
+                    // User authenticated successfully
+                    const accessToken = jwt.sign(
+                        {
+                            email: user.email,
+                            userId: user.id,
+                        },
+                        process.env.ACCESS_TOKEN_SECRET,
+                        { expiresIn: "604800s" }
+                    )
+                    const refreshToken = jwt.sign(
+                        {
+                            email: user.email,
+                            userId: user.id,
+                        },
+                        process.env.REFRESH_TOKEN_SECRET
+                    )
+                    res.status(200).send({
+                        access_token: accessToken,
+                        expired_in: 604800,
+                        refresh_token: refreshToken,
+                        token_type: "Bearer",
+                    })
+                })
+            })
+        })
+
+        this.get("/account", (req, res) => {
+            const token = req.headers.authorization.split(" ")[1]
+            jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decodedToken) => {
+                if (err) {
+                    return res
+                        .status(401)
+                        .json({ message: "Invalid token" })
+                }
+                const userId = decodedToken.userId
+                const query = "SELECT id, username, email FROM users WHERE id = ?"
+                mysql.createQuery(query, [userId],
+                    (error, results) => {
+                        if (error) {
+                            console.error(error)
+                            return res
+                                .status(500)
+                                .json({ message: "Error retrieving user information" })
+                        }
+                        const user = results[0]
+                        if (!user) {
+                            return res
+                                .status(404)
+                                .json({ message: "User not found" })
+                        }
+                        res.json({
+                            id: user.id,
+                            username: user.username,
+                            email: user.email,
+                        })
+                    }
+                )
+            })
+        })
     }
-};
+}
 
+const genRanHex = (size) =>
+    [...Array(size)]
+        .map(() => Math.floor(Math.random() * 16).toString(16))
+        .join("")
 
-const genRanHex = size => [...Array(size)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');
-
-module.exports.page = '/api/auth';
+module.exports.page = "/api/auth"
