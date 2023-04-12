@@ -16,5 +16,8 @@ module.exports = {
             if(err) return callBack(err)
             return callBack(null, res)
         })
+    },
+    getConnection: (cb) => {
+        return pool.getConnection(cb)
     }
 }
