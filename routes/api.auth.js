@@ -27,6 +27,25 @@ module.exports.Router = class Routes extends Router {
                 return
             }
 
+            function isValidUsername(username) {
+                const forbiddenSubstrings = ['@', '#', ':', '```', 'glowapp'];
+                const forbiddenUsernames = ['everyone', 'here'];
+                
+                for (let i = 0; i < forbiddenSubstrings.length; i++) {
+                    if (username.includes(forbiddenSubstrings[i])) {
+                        return false;
+                    }
+                }
+                
+                if (forbiddenUsernames.includes(username)) {
+                    return false;
+                }
+                
+                return true;
+            }
+
+            if(!isValidUsername(username)) return res.status(401).send("Username is invalid")
+
             // Check if user with this email already exists in the database
             const query = "SELECT * FROM users WHERE email = ?"
             mysql.createQuery(query, [email], (err, result) => {
