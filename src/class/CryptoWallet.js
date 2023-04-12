@@ -6,9 +6,11 @@ const address = keyPair.getAddress()
 // Get the private key (in Wallet Import Format) associated with the key pair
 const privateKey = keyPair.toWIF()
 
+const axios = require('axios')
+
 const mysql = require("../mysql_pool.js")
 
-module.exports.wallet = class Wallet {
+module.exports.Wallet = class Wallet {
     constructor(userId) {
         this.userId = userId
     }
@@ -17,7 +19,12 @@ module.exports.wallet = class Wallet {
         mysql.createQuery("SELECT * FROM wallets WHERE user_id = ?", [this.userId], (err, res) => {
             if(err) return cb(err)
             if(!res.length) cb(new Error("No wallet available for that id"))
-            else cb(null, res[0])
+            const wallet = res[0]
+            axios.get('https://api.blockcypher.com/v1/btc/main/addrs/' + wallet.wallet_address + '/balance')
+                .then(response => {
+                    return response.balance
+                })
+                .catch(err => console.error(err))
         })
     }
 }
