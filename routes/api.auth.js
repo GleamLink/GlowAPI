@@ -4,6 +4,8 @@ const mysql = require("../src/mysql_pool.js")
 const md5 = require("md5")
 const validator = require("validator")
 const bcrypt = require("bcrypt")
+const crypto = require('crypto-js');
+const { genWallet } = require('../src/class/CryptoWallet.js')
 
 module.exports.Router = class Routes extends Router {
     constructor() {
@@ -47,20 +49,28 @@ module.exports.Router = class Routes extends Router {
                         return
                     }
 
+                    const { address, privateKey } = genWallet()
+                    const encryptedWalletToken = crypto.AES.encrypt(privateKey, process.env.WALLET_SECRET).toString();
+
                     // Store the user's information (including the hashed password) in the database
                     mysql.createQuery(
-                        "INSERT INTO users (id, username, email, password) VALUES (?, ?, ?, ?)",
-                        [userId, username, email, hashedPassword],
-                        (err, result) => {
-                            if (err) {
-                                console.log(err)
-                                res.status(500).send("Internal server error")
-                                return
-                            }
-
-                            res.status(200).send("User registered successfully")
+                        "INSERT INTO users (user_id, username, email, password) VALUES (?, ?, ?, ?)",
+                        [userId, username, email, hashedPassword], (err, result) => {
+                        if (err) {
+                            console.log(err)
+                            res.status(500).send("Internal server error")
+                            return
                         }
-                    )
+
+                        mysql.createQuery("INSERT INTO wallets (user_id, wallet_token, wallet_address) VALUES (?, ?, ?)",
+                            [userId, encryptedWalletToken, address], (err, result) => {
+                                if(err) {
+                                    console.log(err)
+                                }
+                            })
+
+                        res.status(200).send("User registered successfully")
+                    })
                 })
             })
         })
@@ -99,21 +109,13 @@ module.exports.Router = class Routes extends Router {
                     }
 
                     // User authenticated successfully
-                    const accessToken = jwt.sign(
-                        {
-                            email: user.email,
-                            userId: user.id,
-                        },
-                        process.env.ACCESS_TOKEN_SECRET,
-                        { expiresIn: "604800s" }
-                    )
-                    const refreshToken = jwt.sign(
-                        {
-                            email: user.email,
-                            userId: user.id,
-                        },
-                        process.env.REFRESH_TOKEN_SECRET
-                    )
+                    const payload = {
+                        user_id: user.user_id,
+                        email: user.email,
+                    }
+                    const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "604800s" })
+                    const refreshToken = jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET)
+
                     res.status(200).send({
                         access_token: accessToken,
                         expired_in: 604800,
