@@ -1,5 +1,5 @@
 const mysql = require('mysql')
-const { getFollowing } = require('./followers')
+const { getFriends } = require('./friends')
 
 module.exports.pool = mysql.createPool({
     connectionLimit: 10,
