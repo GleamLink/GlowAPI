@@ -1,10 +1,6 @@
-const bitcoin = require("bitcoinjs-lib")
-// Generate a new Bitcoin key pair
-const keyPair = bitcoin.ECPair.makeRandom()
-// Get the Bitcoin address associated with the key pair
-const address = keyPair.getAddress()
-// Get the private key (in Wallet Import Format) associated with the key pair
-const privateKey = keyPair.toWIF()
+const { PrivateKey } = require("bitcore-lib")
+const { mainnet, testnet } = require("bitcore-lib/lib/networks")
+const Mnemonic = require("bitcore-mnemonic")
 
 const axios = require('axios')
 
@@ -29,8 +25,11 @@ module.exports.Wallet = class Wallet {
     }
 }
 
-module.exports.genWallet = function genWallet() {
+module.exports.genWallet = (network = testnet) => {
+    let privKey = new PrivateKey()
+    let address = privKey.toAddress(network)
     return {
-        address, privateKey
+        private_key: privKey.toString(),
+        address: address.toString()
     }
 }
