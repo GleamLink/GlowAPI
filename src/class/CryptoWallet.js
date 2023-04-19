@@ -26,10 +26,13 @@ module.exports.Wallet = class Wallet {
 }
 
 module.exports.genWallet = (network = testnet) => {
-    let privKey = new PrivateKey()
-    let address = privKey.toAddress(network)
+    let passPhrase = new Mnemonic(Mnemonic.Words.ENGLISH)
+    let xpriv = passPhrase.toHDPrivateKey(passPhrase.toString(), network)
+
     return {
-        private_key: privKey.toString(),
-        address: address.toString()
+        xpub: xpriv.xpubkey,
+        private_key: xpriv.privateKey.toString(),
+        address: xpriv.publicKey.toAddress().toString(),
+        mnemonic: passPhrase.toString()
     }
 }
